@@ -93,7 +93,7 @@ public class PreferencesManager {
                         } else if (field.getType() == Float.TYPE) {
                             field.setFloat(preferencesObject, ((Number) storedValue).floatValue());
                         } else if (field.getType() == Double.TYPE) {
-                            field.setDouble(preferencesObject, ((Number) storedValue).doubleValue());
+                            field.setDouble(preferencesObject, Double.parseDouble((String)storedValue));
                         } else if (field.getType() == Boolean.TYPE) {
                             field.setBoolean(preferencesObject, (Boolean) storedValue);
                         }
@@ -108,7 +108,7 @@ public class PreferencesManager {
                     } else if (field.getType() == Float.class) {
                         field.set(preferencesObject, new Float(((Number) storedValue).floatValue()));
                     } else if (field.getType() == Double.class) {
-                        field.set(preferencesObject, new Double(((Number) storedValue).doubleValue()));
+                        field.set(preferencesObject, Double.parseDouble((String)storedValue));
                     } else if(field.getType() == Date.class) {
                         String dateStr = (String)storedValue;
                         try {
@@ -161,9 +161,10 @@ public class PreferencesManager {
                         editor.putInt(fieldName, ((Number) fieldValue).intValue());
                     } else if (fieldValue instanceof Long) {
                         editor.putLong(fieldName, ((Number) fieldValue).longValue());
-                    } else if (fieldValue instanceof Float ||
-                            fieldValue instanceof Double) {
+                    } else if (fieldValue instanceof Float) {
                         editor.putFloat(fieldName, ((Number) fieldValue).floatValue());
+                    } else if (fieldValue instanceof Double) {
+                        editor.putString(fieldName, fieldValue.toString());
                     } else if (fieldValue instanceof Boolean) {
                         editor.putBoolean(fieldName, ((Boolean) fieldValue).booleanValue());
                     } else if (fieldValue instanceof String) {
