@@ -1,0 +1,2 @@
+set /p password=Enter password for user zohart74: 
+cmd /k mvn deploy:deploy-file -Dfile=E:\repos\common\common\preferences\build\outputs\aar\preferences-release.aar -DgroupId=org.tennez.common -DartifactId=preferences -Dversion=1.0.0 -Dpackaging=aar  -Durl=http://zohart74:%password%@localhost:8081/artifactory/local-gradle/
