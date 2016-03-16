@@ -1,0 +1,181 @@
+package org.tennez.common.app.commontest;
+
+import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Button;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.tennez.common.app.commontest.preferences.TestPreferences;
+import org.tennez.common.preferences.PreferencesManager;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TimeZone;
+
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        Button testprefs = (Button)findViewById(R.id.testprefs);
+        testprefs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TestPreferences testPreferences = TestPreferences.getInstance(getApplicationContext());
+                Log.d("Test.Preferences","Current State: "+testPreferences);
+                if(testPreferences.getPrimitiveByte() == 0) {
+                    testPreferences.setPrimitiveByte(((byte) 1));
+                    testPreferences.setPrimitiveShort((short) 2);
+                    testPreferences.setPrimitiveInt(3);
+                    testPreferences.setPrimitiveLong(4);
+                    testPreferences.setPrimitiveDouble(5.1);
+                    testPreferences.setPrimitiveFloat((float) 6.2);
+                    testPreferences.setPrimitiveBoolean(false);
+
+                    testPreferences.setObjectByte(new Byte((byte) -1));
+                    testPreferences.setObjectShort(new Short((short) -2));
+                    testPreferences.setObjectInt(new Integer(-3));
+                    testPreferences.setObjectLong(new Long(-4));
+                    testPreferences.setObjectDouble(new Double(-5.1));
+                    testPreferences.setObjectFloat(new Float((float) -6.2));
+                    testPreferences.setObjectBoolean(Boolean.FALSE);
+
+                    testPreferences.setDate(new Date());
+                    testPreferences.setObjectString("S1");
+                    testPreferences.setStringSet(new HashSet<String>());
+                    testPreferences.setJsonObject(new JSONObject());
+                    testPreferences.setJsonArray(new JSONArray());
+                } else if(testPreferences.getPrimitiveByte() == 1) {
+                    testPreferences.setPrimitiveByte(((byte) 2));
+                    testPreferences.setPrimitiveShort((short) 3);
+                    testPreferences.setPrimitiveInt(4);
+                    testPreferences.setPrimitiveLong(5);
+                    testPreferences.setPrimitiveDouble(6.1);
+                    testPreferences.setPrimitiveFloat((float) 7.2);
+                    testPreferences.setPrimitiveBoolean(true);
+
+                    testPreferences.setObjectByte(new Byte((byte) -2));
+                    testPreferences.setObjectShort(new Short((short) -3));
+                    testPreferences.setObjectInt(new Integer(-4));
+                    testPreferences.setObjectLong(new Long(-5));
+                    testPreferences.setObjectDouble(new Double(-6.1));
+                    testPreferences.setObjectFloat(new Float((float) -7.2));
+                    testPreferences.setObjectBoolean(Boolean.TRUE);
+
+                    Date date = testPreferences.getDate();
+                    date = new Date(date.getTime()+24*60*60*1000);
+                    testPreferences.setDate(date);
+                    testPreferences.setObjectString("S2");
+                    Set<String> stringSet = testPreferences.getStringSet();
+                    stringSet.add("STR1");
+                    testPreferences.setStringSet(stringSet);
+                    try {
+                        JSONObject jsonObject = testPreferences.getJsonObject();
+                        jsonObject.put("iter", 2);
+                        testPreferences.setJsonObject(jsonObject);
+                        JSONArray jsonArray = testPreferences.getJsonArray();
+                        jsonArray.put("iteration2");
+                        testPreferences.setJsonArray(jsonArray);
+                    } catch (JSONException json) {
+
+                    }
+                } else if(testPreferences.getPrimitiveByte() == 2) {
+                    testPreferences.setPrimitiveByte(((byte) 3));
+                    testPreferences.setPrimitiveShort((short) 4);
+                    testPreferences.setPrimitiveInt(5);
+                    testPreferences.setPrimitiveLong(6);
+                    testPreferences.setPrimitiveDouble(7.1);
+                    testPreferences.setPrimitiveFloat((float) 8.2);
+                    testPreferences.setPrimitiveBoolean(false);
+
+                    testPreferences.setObjectByte(new Byte((byte) -3));
+                    testPreferences.setObjectShort(new Short((short) -4));
+                    testPreferences.setObjectInt(new Integer(-5));
+                    testPreferences.setObjectLong(new Long(-6));
+                    testPreferences.setObjectDouble(new Double(-7.1));
+                    testPreferences.setObjectFloat(new Float((float) -8.2));
+                    testPreferences.setObjectBoolean(Boolean.FALSE);
+
+                    Date date = testPreferences.getDate();
+                    date = new Date(date.getTime()+24*60*60*1000);
+                    testPreferences.setDate(date);
+                    testPreferences.setObjectString("S3");
+                    Set<String> stringSet = testPreferences.getStringSet();
+                    stringSet.add("STR2");
+                    testPreferences.setStringSet(stringSet);
+                    try {
+                        JSONObject jsonObject = testPreferences.getJsonObject();
+                        jsonObject.put("iter", 3);
+                        jsonObject.put("next", true);
+                        testPreferences.setJsonObject(jsonObject);
+                        JSONArray jsonArray = testPreferences.getJsonArray();
+                        jsonArray.put("iteration3");
+                        testPreferences.setJsonArray(jsonArray);
+                    } catch (JSONException json) {
+
+                    }
+                } else if(testPreferences.getPrimitiveByte() == 3) {
+                    testPreferences.setPrimitiveByte(((byte) 0));
+                    testPreferences.setPrimitiveShort((short) 0);
+                    testPreferences.setPrimitiveInt(0);
+                    testPreferences.setPrimitiveLong(0);
+                    testPreferences.setPrimitiveDouble(0);
+                    testPreferences.setPrimitiveFloat((float) 0);
+                    testPreferences.setPrimitiveBoolean(false);
+
+                    testPreferences.setObjectByte(new Byte((byte) 0));
+                    testPreferences.setObjectShort(new Short((short) 0));
+                    testPreferences.setObjectInt(new Integer(0));
+                    testPreferences.setObjectLong(new Long(0));
+                    testPreferences.setObjectDouble(new Double(0));
+                    testPreferences.setObjectFloat(new Float((float) 0));
+                    testPreferences.setObjectBoolean(Boolean.FALSE);
+
+                    testPreferences.setDate(null);
+                    testPreferences.setObjectString(null);
+                    testPreferences.setStringSet(null);
+                    testPreferences.setJsonArray(null);
+                }
+                PreferencesManager.syncToFile(getApplicationContext(), testPreferences);
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+}
