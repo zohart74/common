@@ -1,5 +1,7 @@
 package org.tennez.common.preferences;
 
+import android.content.Context;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,6 +14,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Preferences {
     String name();
+    int mode() default Context.MODE_PRIVATE;
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)

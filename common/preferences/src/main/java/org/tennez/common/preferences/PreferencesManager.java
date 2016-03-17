@@ -46,7 +46,7 @@ public class PreferencesManager {
             Preferences preferences = preferencesObject.getClass().getAnnotation(Preferences.class);
             if(preferences != null) {
                 String preferencesName = preferences.name();
-                SharedPreferences sharedPreferences = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE);
+                SharedPreferences sharedPreferences = context.getSharedPreferences(preferencesName, preferences.mode());
                 Map<String, ?> allPreferences = sharedPreferences.getAll();
                 Field[] fields = preferencesObject.getClass().getDeclaredFields();
                 if(fields != null) {
@@ -63,7 +63,7 @@ public class PreferencesManager {
             Preferences preferences = preferencesObject.getClass().getAnnotation(Preferences.class);
             if(preferences != null) {
                 String preferencesName = preferences.name();
-                SharedPreferences.Editor editor = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = context.getSharedPreferences(preferencesName, preferences.mode()).edit();
                 Field[] fields = preferencesObject.getClass().getDeclaredFields();
                 if(fields != null) {
                     for(Field field : fields) {
