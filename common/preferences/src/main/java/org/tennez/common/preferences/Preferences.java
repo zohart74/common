@@ -25,5 +25,6 @@ public @interface Preferences {
         boolean useDefaultValue() default false;
         String defaultValue() default "";
         String defaultValueField() default "";
+        String backwardCompatibility() default "";
     }
 }

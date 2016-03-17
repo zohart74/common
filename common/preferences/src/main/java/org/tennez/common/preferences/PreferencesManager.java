@@ -250,8 +250,13 @@ public class PreferencesManager {
 
     public static Object getStoredValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value) {
         Object storedValue = allPreferences.get(preferencesKey);
-        if(storedValue == null && value.useDefaultValue()) {
-            storedValue = getDefaultValue(field, getDefaultValueFromAnnotation(preferencesObject, value));
+        if(storedValue == null) {
+            if(value.backwardCompatibility().length() > 0) {
+                storedValue = allPreferences.get(value.backwardCompatibility());
+            }
+            if(storedValue == null && value.useDefaultValue()) {
+                storedValue = getDefaultValue(field, getDefaultValueFromAnnotation(preferencesObject, value));
+            }
         }
         return storedValue;
     }
@@ -353,6 +358,9 @@ public class PreferencesManager {
                                 }
                             }
                         }
+                    }
+                    if(value.backwardCompatibility().length()>0) {
+                        editor.remove(value.backwardCompatibility());
                     }
                 }
             } catch (IllegalAccessException iae) {

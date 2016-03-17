@@ -24,7 +24,7 @@ public class TestContainer {
 
 
 
-    @Preferences.Value
+    @Preferences.Value(backwardCompatibility = "CTEXT")
     private String text;
 
     @Preferences.Value

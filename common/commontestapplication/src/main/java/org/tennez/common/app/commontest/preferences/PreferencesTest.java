@@ -1,6 +1,7 @@
 package org.tennez.common.app.commontest.preferences;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -23,7 +24,12 @@ public class PreferencesTest implements Test{
     @Override
     public boolean test(Context context) {
         try {
+            SharedPreferences.Editor editor = context.getSharedPreferences("CommonTest", Context.MODE_PRIVATE).edit();
+            editor.putString("CTEXT","backward compatibility test");
+            editor.commit();
             while(nextIteration(context)){}
+            SharedPreferences preferences = context.getSharedPreferences("CommonTest", Context.MODE_PRIVATE);
+            Log.d("Test.Preferences", "Backward compatibility test: " + preferences.getString("CTEXT", "Successful"));
             return true;
         } catch (Throwable t) {
             Log.d(TAG, "Failed preferences test", t);
