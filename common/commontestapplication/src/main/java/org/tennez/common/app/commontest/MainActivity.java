@@ -14,7 +14,9 @@ import android.widget.Button;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.tennez.common.app.commontest.preferences.TestContainer;
 import org.tennez.common.app.commontest.preferences.TestPreferences;
+import org.tennez.common.app.commontest.preferences.TestSubContainer;
 import org.tennez.common.preferences.PreferencesManager;
 
 import java.util.Calendar;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
                     testPreferences.setStringSet(new HashSet<String>());
                     testPreferences.setJsonObject(new JSONObject());
                     testPreferences.setJsonArray(new JSONArray());
+                    testPreferences.setContainer(new TestContainer());
                 } else if(testPreferences.getPrimitiveByte() == 1) {
                     testPreferences.setPrimitiveByte(((byte) 2));
                     testPreferences.setPrimitiveShort((short) 3);
@@ -95,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
                     } catch (JSONException json) {
 
                     }
+
+                    TestContainer container = testPreferences.getContainer();
+                    container.setText("ctext");
+                    container.setNumber(10);
+                    container.setSubContainer(new TestSubContainer());
+                    container.setSubContainer2(new TestSubContainer());
                 } else if(testPreferences.getPrimitiveByte() == 2) {
                     testPreferences.setPrimitiveByte(((byte) 3));
                     testPreferences.setPrimitiveShort((short) 4);
@@ -130,6 +139,15 @@ public class MainActivity extends AppCompatActivity {
                     } catch (JSONException json) {
 
                     }
+                    TestContainer container = testPreferences.getContainer();
+                    container.setText("ctext2");
+                    container.setNumber(11);
+                    TestSubContainer subContainer = container.getSubContainer();
+                    subContainer.setSubText("sctext");
+                    subContainer.setSubValue(-11);
+                    TestSubContainer subContainer2 = container.getSubContainer2();
+                    subContainer2.setSubText("sctext2");
+                    subContainer2.setSubValue(-111);
                 } else if(testPreferences.getPrimitiveByte() == 3) {
                     testPreferences.setPrimitiveByte(((byte) 0));
                     testPreferences.setPrimitiveShort((short) 0);
@@ -151,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
                     testPreferences.setObjectString(null);
                     testPreferences.setStringSet(null);
                     testPreferences.setJsonArray(null);
+                    testPreferences.setContainer(null);
                 }
                 PreferencesManager.syncToFile(getApplicationContext(), testPreferences);
             }

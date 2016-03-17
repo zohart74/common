@@ -4,23 +4,34 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.tennez.common.preferences.type.ContainerType;
+import org.tennez.common.preferences.type.DateType;
+import org.tennez.common.preferences.type.JsonType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 
 public class PreferencesManager {
 
-    private static final String TAG = "PreferencesManager";
+    public static final String TAG = "PreferencesManager";
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final List<ComplexPreferencesType> SUPPORTED_TYPES = new LinkedList<ComplexPreferencesType>();
+    static {
+        SUPPORTED_TYPES.add(new DateType());
+        SUPPORTED_TYPES.add(new JsonType());
+        SUPPORTED_TYPES.add(new ContainerType());
+    }
+
+    public static void addSupportedType(ComplexPreferencesType type) {
+        synchronized (SUPPORTED_TYPES) {
+            SUPPORTED_TYPES.add(type);
+        }
+    }
 
     public static Object loadFromFile(Context context, Class preferencesObjectClass) {
         try {
@@ -44,7 +55,7 @@ public class PreferencesManager {
                 Field[] fields = preferencesObject.getClass().getDeclaredFields();
                 if(fields != null) {
                     for(Field field : fields) {
-                        setFieldValue(allPreferences, preferencesObject, field);
+                        setFieldValue(allPreferences, preferencesObject, field, null);
                     }
                 }
             }
@@ -60,7 +71,7 @@ public class PreferencesManager {
                 Field[] fields = preferencesObject.getClass().getDeclaredFields();
                 if(fields != null) {
                     for(Field field : fields) {
-                        saveFieldValue(editor, preferencesObject, field);
+                        saveFieldValue(editor, preferencesObject, field, null);
                     }
                 }
                 editor.commit();
@@ -68,19 +79,16 @@ public class PreferencesManager {
         }
     }
 
-    private static void setFieldValue(Map<String, ?> allPreferences, Object preferencesObject, Field field) {
+    public static void setFieldValue(Map<String, ?> allPreferences, Object preferencesObject, Field field, String prefix) {
         Preferences.Value value = field.getAnnotation(Preferences.Value.class);
         if(value != null) {
-            String fieldName = value.name();
-            if (fieldName.length() == 0) {
-                fieldName = field.getName();
-            }
-            if (allPreferences.containsKey(fieldName)) {
+            String preferencesKey = getPreferencesKey(value, field, prefix);
+            if (allPreferences.containsKey(preferencesKey)) {
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
                 try {
-                    Object storedValue = allPreferences.get(fieldName);
+                    Object storedValue = allPreferences.get(preferencesKey);
                     if(field.getType().isPrimitive()) {
                         if (field.getType() == Byte.TYPE) {
                             field.setByte(preferencesObject, ((Number) storedValue).byteValue());
@@ -109,29 +117,20 @@ public class PreferencesManager {
                         field.set(preferencesObject, new Float(((Number) storedValue).floatValue()));
                     } else if (field.getType() == Double.class) {
                         field.set(preferencesObject, Double.parseDouble((String)storedValue));
-                    } else if(field.getType() == Date.class) {
-                        String dateStr = (String)storedValue;
-                        try {
-                            field.set(preferencesObject, DATE_FORMAT.parse(dateStr));
-                        } catch (Exception e) {
-                            Log.e(TAG,"Failed to parse date "+dateStr+" for field "+field.getName(), e);
+                    } else {
+                        boolean found = false;
+                        synchronized (SUPPORTED_TYPES) {
+                            for(ComplexPreferencesType type : SUPPORTED_TYPES) {
+                                if(type.isCompatible(field)) {
+                                    type.loadValue(allPreferences, preferencesKey, preferencesObject, field);
+                                    found = true;
+                                    break;
+                                }
+                            }
                         }
-                    } else if(field.getType() == JSONObject.class) {
-                        String jsonStr = (String)storedValue;
-                        try {
-                            field.set(preferencesObject, new JSONObject(jsonStr));
-                        } catch (Exception e) {
-                            Log.e(TAG,"Failed to parse json "+jsonStr+" for field "+field.getName(), e);
+                        if(!found) {
+                            field.set(preferencesObject, storedValue);
                         }
-                    } else if(field.getType() == JSONArray.class) {
-                        String jsonArayStr = (String)storedValue;
-                        try {
-                            field.set(preferencesObject, new JSONArray(jsonArayStr));
-                        } catch (Exception e) {
-                            Log.e(TAG,"Failed to parse json array "+jsonArayStr+" for field "+field.getName(), e);
-                        }
-                    } else  {
-                        field.set(preferencesObject, storedValue);
                     }
                 } catch (IllegalAccessException iae) {
                     Log.e(TAG,"Failed to set field value for "+field.getName(), iae);
@@ -140,48 +139,59 @@ public class PreferencesManager {
         }
     }
 
-    private static void saveFieldValue(SharedPreferences.Editor editor, Object preferencesObject, Field field) {
+    public static void saveFieldValue(SharedPreferences.Editor editor, Object preferencesObject, Field field, String prefix) {
         Preferences.Value value = field.getAnnotation(Preferences.Value.class);
         if(value != null) {
             if (!field.isAccessible()) {
                 field.setAccessible(true);
             }
-            String fieldName = value.name();
-            if (fieldName.length() == 0) {
-                fieldName = field.getName();
-            }
+            String preferencesKey = getPreferencesKey(value, field, prefix);
             try {
                 Object fieldValue = field.get(preferencesObject);
                 if(fieldValue == null) {
-                    editor.remove(fieldName);
+                    editor.remove(preferencesKey);
                 } else {
                     if (fieldValue instanceof Byte ||
                             fieldValue instanceof Short ||
                             fieldValue instanceof Integer) {
-                        editor.putInt(fieldName, ((Number) fieldValue).intValue());
+                        editor.putInt(preferencesKey, ((Number) fieldValue).intValue());
                     } else if (fieldValue instanceof Long) {
-                        editor.putLong(fieldName, ((Number) fieldValue).longValue());
+                        editor.putLong(preferencesKey, ((Number) fieldValue).longValue());
                     } else if (fieldValue instanceof Float) {
-                        editor.putFloat(fieldName, ((Number) fieldValue).floatValue());
+                        editor.putFloat(preferencesKey, ((Number) fieldValue).floatValue());
                     } else if (fieldValue instanceof Double) {
-                        editor.putString(fieldName, fieldValue.toString());
+                        editor.putString(preferencesKey, fieldValue.toString());
                     } else if (fieldValue instanceof Boolean) {
-                        editor.putBoolean(fieldName, ((Boolean) fieldValue).booleanValue());
+                        editor.putBoolean(preferencesKey, ((Boolean) fieldValue).booleanValue());
                     } else if (fieldValue instanceof String) {
-                        editor.putString(fieldName, (String) fieldValue);
+                        editor.putString(preferencesKey, (String) fieldValue);
                     } else if (fieldValue instanceof Set && ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0] == String.class) {
-                        editor.putStringSet(fieldName, (Set<String>) fieldValue);
-                    } else if (field.getType() == Date.class) {
-                        editor.putString(fieldName, DATE_FORMAT.format((Date) fieldValue));
-                    } else if (field.getType() == JSONObject.class || field.getType() == JSONArray.class) {
-                        editor.putString(fieldName, fieldValue.toString());
+                        editor.putStringSet(preferencesKey, (Set<String>) fieldValue);
+                    } else {
+                        synchronized (SUPPORTED_TYPES) {
+                            for(ComplexPreferencesType type : SUPPORTED_TYPES) {
+                                if(type.isCompatible(field)) {
+                                    type.storeValue(editor, preferencesKey, fieldValue);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             } catch (IllegalAccessException iae) {
                 Log.e(TAG,"Failed to store field value for "+field.getName(), iae);
             }
-        } else {
-            Log.d(TAG,"Save Found non value field "+field.getName());
         }
+    }
+
+    public static String getPreferencesKey(Preferences.Value value, Field field, String prefix) {
+        String preferencesKey = value.name();
+        if (preferencesKey.length() == 0) {
+            preferencesKey = field.getName();
+        }
+        if(prefix != null && !value.overridePrefix()) {
+            preferencesKey = prefix + preferencesKey;
+        }
+        return  preferencesKey;
     }
 }

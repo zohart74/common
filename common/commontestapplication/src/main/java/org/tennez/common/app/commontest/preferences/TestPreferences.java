@@ -63,6 +63,9 @@ public class TestPreferences {
     @Preferences.Value
     private JSONArray jsonArray;
 
+    @Preferences.Value
+    private TestContainer container;
+
     private String notAValue;
 
     public byte getPrimitiveByte() {
@@ -143,6 +146,14 @@ public class TestPreferences {
 
     public String getNotAValue() {
         return notAValue;
+    }
+
+    public TestContainer getContainer() {
+        return container;
+    }
+
+    public void setContainer(TestContainer container) {
+        this.container = container;
     }
 
     public static void setInstance(TestPreferences instance) {
@@ -251,6 +262,7 @@ public class TestPreferences {
                 ", date=" + date +
                 ", jsonObject=" + jsonObject +
                 ", jsonArray=" + jsonArray +
+                ", container=" + container +
                 ", notAValue='" + notAValue + '\'' +
                 '}';
     }

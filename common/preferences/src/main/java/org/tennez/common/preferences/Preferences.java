@@ -14,8 +14,13 @@ public @interface Preferences {
     String name();
 
     @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public static @interface Container {}
+
+    @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public static @interface Value {
         String name() default "";
+        boolean overridePrefix() default false;
     }
 }
