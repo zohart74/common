@@ -16,18 +16,18 @@ public class ContainerType implements ComplexPreferencesType {
     public static final String NEW = "new";
 
     @Override
-    public boolean isCompatible(Field field) {
+    public boolean isCompatible(Field field, Preferences.Value value) {
         return field.getType().getAnnotation(Preferences.Container.class)!=null;
     }
 
     @Override
-    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue) {
+    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue, Preferences.Value value) {
         editor.putBoolean(preferencesKey, true);
         Field[] fields = fieldValue.getClass().getDeclaredFields();
         if(fields != null) {
             for(Field field : fields) {
-                Preferences.Value value = field.getAnnotation(Preferences.Value.class);
-                if(value != null) {
+                Preferences.Value innerFieldValue = field.getAnnotation(Preferences.Value.class);
+                if(innerFieldValue != null) {
                     PreferencesManager.saveFieldValue(editor, fieldValue, field, preferencesKey+".");
                 }
             }
@@ -67,7 +67,7 @@ public class ContainerType implements ComplexPreferencesType {
     }
 
     @Override
-    public Object createDefaultValue(Field field, Object defaultValue) {
+    public Object createDefaultValue(Field field, Object defaultValue, Preferences.Value value) {
         Class containerClass = field.getType();
         if(defaultValue == null) {
             return null;

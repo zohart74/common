@@ -23,11 +23,23 @@ public @interface Preferences {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public static @interface Value {
+
+        @Retention(RetentionPolicy.RUNTIME)
+        @Target(ElementType.FIELD)
+        public static @interface Param {
+            String key();
+            String value();
+        }
+
         String name() default "";
         boolean overridePrefix() default false;
         boolean useDefaultValue() default false;
         String defaultValue() default "";
         String defaultValueField() default "";
         String backwardCompatibility() default "";
+        Param[] params() default {};
     }
+
+
+
 }

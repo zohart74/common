@@ -17,12 +17,12 @@ public class JsonType implements ComplexPreferencesType {
     private static final String TAG = "JsonType";
 
     @Override
-    public boolean isCompatible(Field field) {
+    public boolean isCompatible(Field field, Preferences.Value value) {
         return field.getType() == JSONObject.class || field.getType() == JSONArray.class;
     }
 
     @Override
-    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue) {
+    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue, Preferences.Value value) {
         editor.putString(preferencesKey, fieldValue.toString());
     }
 
@@ -56,7 +56,7 @@ public class JsonType implements ComplexPreferencesType {
     }
 
     @Override
-    public Object createDefaultValue(Field field, Object defaultValue) {
+    public Object createDefaultValue(Field field, Object defaultValue, Preferences.Value value) {
         if(defaultValue instanceof String) {
             String defaultValueStr = (String) defaultValue;
             try {

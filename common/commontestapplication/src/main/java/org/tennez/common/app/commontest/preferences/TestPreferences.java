@@ -27,6 +27,21 @@ public class TestPreferences {
     private static final Date DEFAULT_DATE = new Date(10000);
     private static final String DEFAULT_DATE_DELTA = DateType.createDurationDelta(true, 10, DateType.Duration.days);
 
+    @Preferences.Value
+    private String subject;
+
+    @Preferences.Value
+    private String email;
+
+    @Preferences.Value
+    private boolean isHere;
+
+    @Preferences.Value
+    private boolean isThere;
+
+    @Preferences.Value
+    private int selectedNumber;
+
     @Preferences.Value(name = "byte")
     private byte primitiveByte;
     @Preferences.Value(name = "short")
@@ -61,7 +76,7 @@ public class TestPreferences {
     private String objectString;
     @Preferences.Value
     private Set<String> stringSet;
-    @Preferences.Value(useDefaultValue = true, defaultValueField = ".DEFAULT_DATE_DELTA")
+    @Preferences.Value(useDefaultValue = true, defaultValue = "16/05/1974", params = {@Preferences.Value.Param(key = DateType.DATE_FORMAT_PARAM_KEY, value = "dd/MM/yyyy")})
     private Date date;
     @Preferences.Value
     private JSONObject jsonObject;
@@ -248,7 +263,12 @@ public class TestPreferences {
     @Override
     public String toString() {
         return "TestPreferences{" +
-                "primitiveByte=" + primitiveByte +
+                "subject='" + subject + '\'' +
+                ", email='" + email + '\'' +
+                ", isHere=" + isHere +
+                ", isThere=" + isThere +
+                ", selectedNumber=" + selectedNumber +
+                ", primitiveByte=" + primitiveByte +
                 ", primitiveShort=" + primitiveShort +
                 ", primitiveInt=" + primitiveInt +
                 ", primitiveLong=" + primitiveLong +

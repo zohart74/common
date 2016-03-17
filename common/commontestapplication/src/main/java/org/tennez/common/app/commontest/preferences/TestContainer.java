@@ -24,7 +24,9 @@ public class TestContainer {
 
 
 
-    @Preferences.Value(backwardCompatibility = "CTEXT")
+    @Preferences.Value(backwardCompatibility = "CTEXT",
+            params = {@Preferences.Value.Param(key = "key1", value = "value1"),
+                      @Preferences.Value.Param(key = "key2", value = "value2")})
     private String text;
 
     @Preferences.Value

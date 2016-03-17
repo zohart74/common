@@ -6,6 +6,7 @@ import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ public class PreferencesManager {
         SUPPORTED_TYPES.add(new DateType());
         SUPPORTED_TYPES.add(new JsonType());
         SUPPORTED_TYPES.add(new ContainerType());
+        SUPPORTED_TYPES.add(new UIElementsType());
     }
 
     public static void addSupportedType(ComplexPreferencesType type) {
@@ -75,7 +77,7 @@ public class PreferencesManager {
         }
     }
 
-    private static Object getDefaultValue(Field field, Object defaultValue) {
+    private static Object getDefaultValue(Field field, Object defaultValue, Preferences.Value value) {
         if(defaultValue == null) {
             return null;
         } else if (field.getType() == Byte.TYPE || field.getType() == Byte.class) {
@@ -193,8 +195,8 @@ public class PreferencesManager {
         } else {
             synchronized (SUPPORTED_TYPES) {
                 for(ComplexPreferencesType type : SUPPORTED_TYPES) {
-                    if(type.isCompatible(field)) {
-                        return type.createDefaultValue(field, defaultValue);
+                    if(type.isCompatible(field, value)) {
+                        return type.createDefaultValue(field, defaultValue, value);
                     }
                 }
             }
@@ -250,7 +252,7 @@ public class PreferencesManager {
                 storedValue = allPreferences.get(value.backwardCompatibility());
             }
             if(storedValue == null && value.useDefaultValue()) {
-                storedValue = getDefaultValue(field, getDefaultValueFromAnnotation(preferencesObject, value));
+                storedValue = getDefaultValue(field, getDefaultValueFromAnnotation(preferencesObject, value), value);
             }
         }
         return storedValue;
@@ -268,45 +270,54 @@ public class PreferencesManager {
                 try {
                     if(field.getType().isPrimitive()) {
                         if (field.getType() == Byte.TYPE) {
-                            field.setByte(preferencesObject, ((Number) storedValue).byteValue());
+                            field.setByte(preferencesObject, ( toNumber(storedValue).byteValue()));
                         } else if (field.getType() == Short.TYPE) {
-                            field.setShort(preferencesObject, ((Number) storedValue).shortValue());
+                            field.setShort(preferencesObject, toNumber(storedValue).shortValue());
                         } else if (field.getType() == Integer.TYPE) {
-                            field.setInt(preferencesObject, ((Number) storedValue).intValue());
+                            field.setInt(preferencesObject, toNumber(storedValue).intValue());
                         } else if (field.getType() == Long.TYPE) {
-                            field.setLong(preferencesObject, ((Number) storedValue).longValue());
+                            field.setLong(preferencesObject, toNumber(storedValue).longValue());
                         } else if (field.getType() == Float.TYPE) {
-                            field.setFloat(preferencesObject, ((Number) storedValue).floatValue());
+                            field.setFloat(preferencesObject, toNumber(storedValue).floatValue());
                         } else if (field.getType() == Double.TYPE) {
                             field.setDouble(preferencesObject, Double.parseDouble((String)storedValue));
                         } else if (field.getType() == Boolean.TYPE) {
-                            field.setBoolean(preferencesObject, (Boolean) storedValue);
+                            if(storedValue instanceof Boolean) {
+                                field.setBoolean(preferencesObject, (Boolean) storedValue);
+                            } else if(storedValue instanceof String) {
+                                field.setBoolean(preferencesObject, Boolean.parseBoolean((String)storedValue));
+                            }
                         }
                     } else if (field.getType() == Byte.class) {
-                        field.set(preferencesObject, ((Number) storedValue).byteValue());
+                        field.set(preferencesObject, toNumber(storedValue).byteValue());
                     } else if (field.getType() == Short.class) {
-                        field.set(preferencesObject, ((Number) storedValue).shortValue());
+                        field.set(preferencesObject, toNumber(storedValue).shortValue());
                     } else if (field.getType() == Integer.class) {
-                        field.set(preferencesObject,((Number) storedValue).intValue());
+                        field.set(preferencesObject,toNumber(storedValue).intValue());
                     } else if (field.getType() == Long.class) {
-                        field.set(preferencesObject, ((Number) storedValue).longValue());
+                        field.set(preferencesObject, toNumber(storedValue).longValue());
                     } else if (field.getType() == Float.class) {
-                        field.set(preferencesObject, ((Number) storedValue).floatValue());
+                        field.set(preferencesObject, toNumber(storedValue).floatValue());
                     } else if (field.getType() == Double.class) {
                         field.set(preferencesObject, Double.parseDouble((String)storedValue));
+                    } else if (field.getType() == Boolean.class) {
+                        if(storedValue instanceof Boolean) {
+                            field.set(preferencesObject, storedValue);
+                        } else if(storedValue instanceof String) {
+                            field.set(preferencesObject, Boolean.parseBoolean((String)storedValue));
+                        }
+                    } else if (field.getType() == String.class) {
+                        field.set(preferencesObject, storedValue);
+                    } else if ((field.getType() == Set.class && ((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0] == String.class)) {
+                        field.set(preferencesObject, storedValue);
                     } else {
-                        boolean found = false;
                         synchronized (SUPPORTED_TYPES) {
                             for(ComplexPreferencesType type : SUPPORTED_TYPES) {
-                                if(type.isCompatible(field)) {
+                                if(type.isCompatible(field, value)) {
                                     type.loadValue(allPreferences, preferencesKey, preferencesObject, field, value);
-                                    found = true;
                                     break;
                                 }
                             }
-                        }
-                        if(!found) {
-                            field.set(preferencesObject, storedValue);
                         }
                     }
                 } catch (IllegalAccessException iae) {
@@ -314,6 +325,23 @@ public class PreferencesManager {
                 }
             }
         }
+    }
+
+    private static Number toNumber(Object value) {
+        if(value instanceof  Number) {
+            return (Number)value;
+        } else if(value instanceof String) {
+            String valueStr = (String)value;
+            if(valueStr.indexOf('.')>=0) {
+                return Float.parseFloat(valueStr);
+            } else {
+                return Long.parseLong(valueStr);
+            }
+
+        } else {
+            return new Long(0);
+        }
+
     }
 
     static void saveFieldValue(SharedPreferences.Editor editor, Object preferencesObject, Field field, String prefix) {
@@ -347,8 +375,8 @@ public class PreferencesManager {
                     } else {
                         synchronized (SUPPORTED_TYPES) {
                             for(ComplexPreferencesType type : SUPPORTED_TYPES) {
-                                if(type.isCompatible(field)) {
-                                    type.storeValue(editor, preferencesKey, fieldValue);
+                                if(type.isCompatible(field, value)) {
+                                    type.storeValue(editor, preferencesKey, fieldValue, value);
                                     break;
                                 }
                             }
@@ -373,5 +401,13 @@ public class PreferencesManager {
             preferencesKey = prefix + preferencesKey;
         }
         return  preferencesKey;
+    }
+
+    static Map<String, String> paramsToMap(Preferences.Value.Param[] params) {
+        Map<String, String> paramsMap = new HashMap<String, String>();
+        for(Preferences.Value.Param param : params) {
+            paramsMap.put(param.key(), param.value());
+        }
+        return paramsMap;
     }
 }

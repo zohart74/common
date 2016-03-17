@@ -17,7 +17,8 @@ public class DateType implements ComplexPreferencesType {
 
     private static final String TAG = "DateType";
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static final String DATE_FORMAT_PARAM_KEY = "dateFormat";
 
     public static final String CURRENT_TIME ="currentTime";
 
@@ -71,12 +72,12 @@ public class DateType implements ComplexPreferencesType {
 
 
     @Override
-    public boolean isCompatible(Field field) {
+    public boolean isCompatible(Field field, Preferences.Value value) {
         return field.getType() == Date.class;
     }
 
     @Override
-    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue) {
+    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue, Preferences.Value value) {
         editor.putLong(preferencesKey, ((Date) fieldValue).getTime());
     }
 
@@ -87,7 +88,8 @@ public class DateType implements ComplexPreferencesType {
         if(storedValue instanceof Date) {
             date = (Date)storedValue;
         } else if(storedValue instanceof String) {
-            date = getDateFromString((String)storedValue);
+            DateFormat dateFormat = getDateFormat(value);
+            date = getDateFromString((String) storedValue, dateFormat);
         } else {
             date = new Date(((Number) storedValue).longValue());
         }
@@ -100,25 +102,34 @@ public class DateType implements ComplexPreferencesType {
         }
     }
 
+    private DateFormat getDateFormat(Preferences.Value value) {
+        Map<String, String> paramsMap = PreferencesManager.paramsToMap(value.params());
+        DateFormat dateFormat = DEFAULT_DATE_FORMAT;
+        if(paramsMap.containsKey(DATE_FORMAT_PARAM_KEY)) {
+            dateFormat = new SimpleDateFormat(paramsMap.get(DATE_FORMAT_PARAM_KEY));
+        }
+        return dateFormat;
+    }
+
     @Override
-    public Object createDefaultValue(Field field, Object defaultValue) {
+    public Object createDefaultValue(Field field, Object defaultValue, Preferences.Value value) {
         if(defaultValue instanceof Date) {
             return defaultValue;
         } else if(defaultValue instanceof String) {
-            return getDateFromString((String) defaultValue);
+            return getDateFromString((String) defaultValue, getDateFormat(value));
         } else {
             return null;
         }
     }
 
-    private Date getDateFromString(String defaultValue) {
+    private Date getDateFromString(String defaultValue, DateFormat dateFormat) {
         if(CURRENT_TIME.equals(defaultValue)) {
             return new Date();
         } else if(isDurationDelta(defaultValue)) {
             return new Date(System.currentTimeMillis() + getDurationDelta(defaultValue));
         } else {
             try {
-                return DATE_FORMAT.parse(defaultValue);
+                return dateFormat.parse(defaultValue);
             } catch (Exception e) {
                 Log.e(TAG, "Failed to create date from " + defaultValue, e);
                 return null;

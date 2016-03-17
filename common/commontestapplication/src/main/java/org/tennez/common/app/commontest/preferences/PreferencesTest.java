@@ -1,6 +1,7 @@
 package org.tennez.common.app.commontest.preferences;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -30,6 +31,9 @@ public class PreferencesTest implements Test{
             while(nextIteration(context)){}
             SharedPreferences preferences = context.getSharedPreferences("CommonTest", Context.MODE_PRIVATE);
             Log.d("Test.Preferences", "Backward compatibility test: " + preferences.getString("CTEXT", "Successful"));
+            Intent intent = new Intent(context, PreferencesTestActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
             return true;
         } catch (Throwable t) {
             Log.d(TAG, "Failed preferences test", t);

@@ -12,11 +12,11 @@ public interface ComplexPreferencesType {
 
 
 
-    public boolean isCompatible(Field field);
+    public boolean isCompatible(Field field, Preferences.Value value);
 
-    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue);
+    public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue, Preferences.Value value);
 
     public boolean loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value);
 
-    public Object createDefaultValue(Field field, Object defaultValue);
+    public Object createDefaultValue(Field field, Object defaultValue, Preferences.Value value);
 }
