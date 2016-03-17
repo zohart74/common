@@ -5,9 +5,6 @@ import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.tennez.common.preferences.ComplexPreferencesType;
-import org.tennez.common.preferences.Preferences;
-import org.tennez.common.preferences.PreferencesManager;
 
 import java.lang.reflect.Field;
 import java.util.Map;

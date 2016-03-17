@@ -3,8 +3,6 @@ package org.tennez.common.preferences;
 import android.content.SharedPreferences;
 
 import java.lang.reflect.Field;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**

@@ -1,13 +1,7 @@
 package org.tennez.common.preferences;
 
 import android.content.SharedPreferences;
-import android.provider.Settings;
-import android.support.annotation.Nullable;
 import android.util.Log;
-
-import org.tennez.common.preferences.ComplexPreferencesType;
-import org.tennez.common.preferences.Preferences;
-import org.tennez.common.preferences.PreferencesManager;
 
 import java.lang.reflect.Field;
 import java.text.DateFormat;
@@ -117,7 +111,6 @@ public class DateType implements ComplexPreferencesType {
         }
     }
 
-    @Nullable
     private Date getDateFromString(String defaultValue) {
         if(CURRENT_TIME.equals(defaultValue)) {
             return new Date();
