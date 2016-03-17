@@ -1,4 +1,4 @@
-package org.tennez.common.preferences.type;
+package org.tennez.common.preferences;
 
 import android.content.SharedPreferences;
 import android.provider.Settings;

@@ -4,17 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import org.tennez.common.preferences.type.ContainerType;
-import org.tennez.common.preferences.type.DateType;
-import org.tennez.common.preferences.type.JsonType;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 
 public class PreferencesManager {
@@ -248,7 +243,7 @@ public class PreferencesManager {
         }
     }
 
-    public static Object getStoredValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value) {
+    static Object getStoredValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value) {
         Object storedValue = allPreferences.get(preferencesKey);
         if(storedValue == null) {
             if(value.backwardCompatibility().length() > 0) {
@@ -261,7 +256,7 @@ public class PreferencesManager {
         return storedValue;
     }
 
-    public static void setFieldValue(Map<String, ?> allPreferences, Object preferencesObject, Field field, String prefix) {
+    static void setFieldValue(Map<String, ?> allPreferences, Object preferencesObject, Field field, String prefix) {
         Preferences.Value value = field.getAnnotation(Preferences.Value.class);
         if(value != null) {
             String preferencesKey = getPreferencesKey(value, field, prefix);
@@ -321,7 +316,7 @@ public class PreferencesManager {
         }
     }
 
-    public static void saveFieldValue(SharedPreferences.Editor editor, Object preferencesObject, Field field, String prefix) {
+    static void saveFieldValue(SharedPreferences.Editor editor, Object preferencesObject, Field field, String prefix) {
         Preferences.Value value = field.getAnnotation(Preferences.Value.class);
         if(value != null) {
             if (!field.isAccessible()) {
@@ -369,7 +364,7 @@ public class PreferencesManager {
         }
     }
 
-    public static String getPreferencesKey(Preferences.Value value, Field field, String prefix) {
+    static String getPreferencesKey(Preferences.Value value, Field field, String prefix) {
         String preferencesKey = value.name();
         if (preferencesKey.length() == 0) {
             preferencesKey = field.getName();

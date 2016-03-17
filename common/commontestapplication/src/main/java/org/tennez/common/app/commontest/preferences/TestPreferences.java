@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.tennez.common.preferences.Preferences;
 import org.tennez.common.preferences.PreferencesManager;
-import org.tennez.common.preferences.type.DateType;
+import org.tennez.common.preferences.DateType;
 
 import java.util.Date;
 import java.util.Set;

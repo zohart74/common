@@ -3,7 +3,7 @@ package org.tennez.common.app.commontest.preferences;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.tennez.common.preferences.Preferences;
-import org.tennez.common.preferences.type.ContainerType;
+import org.tennez.common.preferences.ContainerType;
 
 /**
  * Created by Tenne on 3/17/2016.
