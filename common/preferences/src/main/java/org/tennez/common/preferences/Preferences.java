@@ -22,5 +22,8 @@ public @interface Preferences {
     public static @interface Value {
         String name() default "";
         boolean overridePrefix() default false;
+        boolean useDefaultValue() default false;
+        String defaultValue() default "";
+        String defaultValueField() default "";
     }
 }

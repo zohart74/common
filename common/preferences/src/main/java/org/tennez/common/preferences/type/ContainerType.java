@@ -17,6 +17,8 @@ public class ContainerType implements ComplexPreferencesType {
 
     private static final String TAG = "ContainerType";
 
+    public static final String NEW = "new";
+
     @Override
     public boolean isCompatible(Field field) {
         return field.getType().getAnnotation(Preferences.Container.class)!=null;
@@ -37,21 +39,51 @@ public class ContainerType implements ComplexPreferencesType {
     }
 
     @Override
-    public void loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field) {
-        Field[] fields = field.getType().getDeclaredFields();
+    public boolean loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value) {
+        boolean valueLoaded = false;
         try {
-            Object containerObject = field.getType().newInstance();
+            Object storedValue = PreferencesManager.getStoredValue(allPreferences, preferencesKey, preferencesObject, field, value);
+            if(storedValue == null) {
+                return false;
+            }
+            Object containerObject;
+            if(field.getType().isInstance(storedValue)) {
+                containerObject = storedValue;
+            } else {
+                containerObject = field.getType().newInstance();
+            }
+            Field[] fields = field.getType().getDeclaredFields();
             field.set(preferencesObject, containerObject);
             if (fields != null) {
                 for (Field f : fields) {
-                    Preferences.Value value = f.getAnnotation(Preferences.Value.class);
-                    if (value != null) {
+                    Preferences.Value innerFieldValue = f.getAnnotation(Preferences.Value.class);
+                    if (innerFieldValue != null) {
                         PreferencesManager.setFieldValue(allPreferences, containerObject, f, preferencesKey+".");
+                        valueLoaded = true;
                     }
                 }
             }
+            return valueLoaded;
         } catch (Exception e) {
             Log.e(TAG, "Failed to load container to field "+field.getName(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public Object createDefaultValue(Field field, Object defaultValue) {
+        Class containerClass = field.getType();
+        if(defaultValue == null) {
+            return null;
+        } else if(containerClass.isInstance(defaultValue)) {
+            return defaultValue;
+        } else {
+            try {
+                return containerClass.newInstance();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to create default container to field "+field.getName(), e);
+                return null;
+            }
         }
     }
 }

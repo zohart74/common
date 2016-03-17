@@ -6,6 +6,8 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.tennez.common.preferences.ComplexPreferencesType;
+import org.tennez.common.preferences.Preferences;
+import org.tennez.common.preferences.PreferencesManager;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -28,16 +30,55 @@ public class JsonType implements ComplexPreferencesType {
     }
 
     @Override
-    public void loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field) {
-        String str = (String)allPreferences.get(preferencesKey);
-        try {
-            if(field.getType() == JSONObject.class) {
-                field.set(preferencesObject, new JSONObject(str));
-            } else {
-                field.set(preferencesObject, new JSONArray(str));
+    public boolean loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value) {
+        Object storedValue = PreferencesManager.getStoredValue(allPreferences, preferencesKey, preferencesObject, field, value);
+        if(storedValue instanceof String) {
+            String str = (String)storedValue;
+            try {
+                if (field.getType() == JSONObject.class) {
+                    field.set(preferencesObject, new JSONObject(str));
+                } else {
+                    field.set(preferencesObject, new JSONArray(str));
+                }
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to parse json " + str + " for field " + field.getName(), e);
+                return false;
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to parse json " + str + " for field " + field.getName(), e);
+        } else if(storedValue instanceof JSONObject || storedValue instanceof JSONArray) {
+            try {
+                field.set(preferencesObject, storedValue);
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to set json " + storedValue + " for field " + field.getName(), e);
+                return false;
+            }
+        } else {
+            return false;
         }
+    }
+
+    @Override
+    public Object createDefaultValue(Field field, Object defaultValue) {
+        if(defaultValue instanceof String) {
+            String defaultValueStr = (String) defaultValue;
+            try {
+                if (defaultValueStr.length() == 0) {
+                    return null;
+                }
+                if (field.getType() == JSONObject.class) {
+                    new JSONObject(defaultValueStr);
+                } else {
+                    return new JSONArray(defaultValueStr);
+                }
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to create default json " + defaultValue + " for field " + field.getName(), e);
+                return false;
+            }
+        } else if(defaultValue instanceof JSONObject || defaultValue instanceof JSONArray) {
+            return defaultValue;
+        }
+        return null;
     }
 }

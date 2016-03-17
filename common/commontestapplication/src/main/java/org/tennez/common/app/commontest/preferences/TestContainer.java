@@ -1,6 +1,9 @@
 package org.tennez.common.app.commontest.preferences;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.tennez.common.preferences.Preferences;
+import org.tennez.common.preferences.type.ContainerType;
 
 /**
  * Created by Tenne on 3/17/2016.
@@ -8,13 +11,26 @@ import org.tennez.common.preferences.Preferences;
 @Preferences.Container
 public class TestContainer {
 
+    private static JSONObject createJSON() {
+        try {
+            return new JSONObject("{\"default\": true}");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static final JSONObject DEFAULT_JSON = createJSON();
+
+
+
     @Preferences.Value
     private String text;
 
     @Preferences.Value
     private int number;
 
-    @Preferences.Value
+    @Preferences.Value(useDefaultValue = true, defaultValue = ContainerType.NEW)
     private TestSubContainer subContainer;
 
     @Preferences.Value(name = "SCTR2", overridePrefix = true)

@@ -1,23 +1,79 @@
 package org.tennez.common.preferences.type;
 
 import android.content.SharedPreferences;
+import android.provider.Settings;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.tennez.common.preferences.ComplexPreferencesType;
+import org.tennez.common.preferences.Preferences;
+import org.tennez.common.preferences.PreferencesManager;
 
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 /**
  * Created by Tenne on 3/17/2016.
  */
 public class DateType implements ComplexPreferencesType {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final String TAG = "DateType";
+
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+    public static final String CURRENT_TIME ="currentTime";
+
+    private static final long SECOND_IN_MILLIS = 1000;
+    private static final long MINUTE_IN_MILLIS = 60 * SECOND_IN_MILLIS;
+    private static final long HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS;
+    private static final long DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
+    private static final long WEEK_IN_MILLIS = 7 * DAY_IN_MILLIS;
+
+
+    public static String createDurationDelta(boolean forward, long quantity, Duration units) {
+        if(forward) {
+            return PLUS+(quantity)+" "+units;
+        } else {
+            return MINUS+(quantity)+" "+units;
+        }
+    }
+
+    private static long getDurationDelta(String deltaStr) {
+        StringTokenizer tok = new StringTokenizer(deltaStr," ");
+        long quantity = Long.parseLong(tok.nextToken());
+        Duration units = Duration.valueOf(tok.nextToken());
+        switch (units) {
+            case milliseconds:
+                return quantity;
+            case seconds:
+                return quantity * SECOND_IN_MILLIS;
+            case minutes:
+                return quantity * MINUTE_IN_MILLIS;
+            case hours:
+                return quantity * HOUR_IN_MILLIS;
+            case days:
+                return quantity * DAY_IN_MILLIS;
+            case weeks:
+                return quantity * WEEK_IN_MILLIS;
+            default:
+                return quantity;
+        }
+    }
+
+    private static boolean isDurationDelta(String str) {
+        return str.startsWith(PLUS) || str.startsWith(MINUS);
+    }
+
+    private static final String PLUS ="+";
+    private static final String MINUS ="-";
+
+    public static enum Duration {
+        milliseconds, seconds, minutes, hours, days, weeks
+    }
 
 
     @Override
@@ -27,16 +83,53 @@ public class DateType implements ComplexPreferencesType {
 
     @Override
     public void storeValue(SharedPreferences.Editor editor, String preferencesKey, Object fieldValue) {
-        editor.putString(preferencesKey, DATE_FORMAT.format((Date) fieldValue));
+        editor.putLong(preferencesKey, ((Date) fieldValue).getTime());
     }
 
     @Override
-    public void loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field) {
-        String dateStr = (String)allPreferences.get(preferencesKey);
+    public boolean loadValue(Map<String, ?> allPreferences, String preferencesKey, Object preferencesObject, Field field, Preferences.Value value) {
+        Object storedValue = PreferencesManager.getStoredValue(allPreferences, preferencesKey, preferencesObject, field, value);
+        Date date;
+        if(storedValue instanceof Date) {
+            date = (Date)storedValue;
+        } else if(storedValue instanceof String) {
+            date = getDateFromString((String)storedValue);
+        } else {
+            date = new Date(((Number) storedValue).longValue());
+        }
         try {
-            field.set(preferencesObject, DATE_FORMAT.parse(dateStr));
+            field.set(preferencesObject, date);
+            return true;
         } catch (Exception e) {
-            Log.e(TAG, "Failed to parse date " + dateStr + " for field " + field.getName(), e);
+            Log.e(TAG, "Failed to set date " + date + " for field " + field.getName(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public Object createDefaultValue(Field field, Object defaultValue) {
+        if(defaultValue instanceof Date) {
+            return defaultValue;
+        } else if(defaultValue instanceof String) {
+            return getDateFromString((String) defaultValue);
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
+    private Date getDateFromString(String defaultValue) {
+        if(CURRENT_TIME.equals(defaultValue)) {
+            return new Date();
+        } else if(isDurationDelta(defaultValue)) {
+            return new Date(System.currentTimeMillis() + getDurationDelta(defaultValue));
+        } else {
+            try {
+                return DATE_FORMAT.parse(defaultValue);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to create date from " + defaultValue, e);
+                return null;
+            }
         }
     }
 }

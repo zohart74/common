@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.tennez.common.preferences.Preferences;
 import org.tennez.common.preferences.PreferencesManager;
+import org.tennez.common.preferences.type.DateType;
 
 import java.util.Date;
 import java.util.Set;
@@ -22,13 +23,17 @@ public class TestPreferences {
         return (TestPreferences)PreferencesManager.loadFromFile(context, TestPreferences.class);
     }
 
+    private static final int DEFAULT_INT = 27;
+    private static final Date DEFAULT_DATE = new Date(10000);
+    private static final String DEFAULT_DATE_DELTA = DateType.createDurationDelta(true, 10, DateType.Duration.days);
+
     @Preferences.Value(name = "byte")
     private byte primitiveByte;
     @Preferences.Value(name = "short")
     private short primitiveShort;
-    @Preferences.Value(name = "int")
+    @Preferences.Value(name = "int", useDefaultValue = true, defaultValueField = ".DEFAULT_INT")
     private int primitiveInt;
-    @Preferences.Value(name = "long")
+    @Preferences.Value(name = "long", useDefaultValue = true, defaultValue = "15")
     private long primitiveLong;
     @Preferences.Value(name = "double")
     private double primitiveDouble;
@@ -52,11 +57,11 @@ public class TestPreferences {
     @Preferences.Value
     private Boolean objectBoolean;
 
-    @Preferences.Value
+    @Preferences.Value()
     private String objectString;
     @Preferences.Value
     private Set<String> stringSet;
-    @Preferences.Value
+    @Preferences.Value(useDefaultValue = true, defaultValueField = ".DEFAULT_DATE_DELTA")
     private Date date;
     @Preferences.Value
     private JSONObject jsonObject;
